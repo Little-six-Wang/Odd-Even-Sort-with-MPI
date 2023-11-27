@@ -32,9 +32,10 @@ int main(){
 	  printf("mpi = [\n");
 	}
 	Print_num(key_value, local_n, N, my_rank, MPI_COMM_WORLD);
-	qsort(key_value, local_n, sizeof(long), cmpfunc);
 	
+	MPI_Barrier(MPI_COMM_WORLD);
 	local_start_time = MPI_Wtime();
+	qsort(key_value, local_n, sizeof(long), cmpfunc);
 	sort(comm_sz, my_rank, local_n, &key_value, recv_value, MPI_COMM_WORLD);
 	local_final_time = MPI_Wtime();
 	local_elapsed = local_final_time - local_start_time;
@@ -47,8 +48,8 @@ int main(){
 	if(my_rank == 0){
 	  free(key_value);
 	  free(recv_value);
-	  printf("]\n");
-	  printf("parallel_sec = %lf", elapsed * 1000);
+	  printf("];\n");
+	  printf("parallel_sec = %lf;", elapsed * 1000);
 	}
 	MPI_Finalize();
 	return 0;
