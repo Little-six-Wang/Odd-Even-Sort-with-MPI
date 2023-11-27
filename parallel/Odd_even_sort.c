@@ -12,9 +12,11 @@ int main(){
 	int q;
 	int local_n;
 	long* key_value = NULL, * recv_value = NULL;
+	double local_start_time, local_final_time, local_elapsed;
+	double elapsed;
 	
 	int cmpfunc(const void* a, const void* b){
-	  return (*(int*)a - *(int*)b);
+	  return *(long*)a > *(long*)b ? 1 : -1;
 	}
 	
 	MPI_Init(NULL, NULL);
@@ -27,22 +29,26 @@ int main(){
 	
 	Read_num(key_value, local_n, N, my_rank, MPI_COMM_WORLD);
 	if(my_rank == 0){
-	  printf("before:\n");
+	  printf("mpi = [\n");
 	}
 	Print_num(key_value, local_n, N, my_rank, MPI_COMM_WORLD);
-	
 	qsort(key_value, local_n, sizeof(long), cmpfunc);
 	
+	local_start_time = MPI_Wtime();
 	sort(comm_sz, my_rank, local_n, &key_value, recv_value, MPI_COMM_WORLD);
+	local_final_time = MPI_Wtime();
+	local_elapsed = local_final_time - local_start_time;
+	MPI_Reduce(&local_elapsed, &elapsed, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 	
 	if(my_rank == 0){
-	  printf("after:\n");
+	  printf(";\n");
 	}
 	Print_num(key_value, local_n, N, my_rank, MPI_COMM_WORLD);
 	if(my_rank == 0){
 	  free(key_value);
 	  free(recv_value);
-	  //free(temp);
+	  printf("]\n");
+	  printf("parallel_sec = %lf", elapsed * 1000);
 	}
 	MPI_Finalize();
 	return 0;
